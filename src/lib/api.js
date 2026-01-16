@@ -141,4 +141,88 @@ export const manufacturersAPI = {
     },
 };
 
+// Stores API
+export const storesAPI = {
+    // Get all stores with pagination and filters
+    getAll: async (skip = 0, limit = 100, activeOnly = false, search = null) => {
+        const params = { skip, limit };
+        if (activeOnly) params.active_only = true;
+        if (search) params.search = search;
+        
+        const response = await api.get('/stores', { params });
+        return response.data;
+    },
+
+    // Get single store by ID
+    getById: async (id) => {
+        const response = await api.get(`/stores/${id}`);
+        return response.data;
+    },
+
+    // Create new store
+    create: async (data) => {
+        const response = await api.post('/stores', data);
+        return response.data;
+    },
+
+    // Update store
+    update: async (id, data) => {
+        const response = await api.put(`/stores/${id}`, data);
+        return response.data;
+    },
+
+    // Delete store
+    delete: async (id) => {
+        const response = await api.delete(`/stores/${id}`);
+        return response.data;
+    },
+};
+
+// Products Catalog API
+export const productsCatalogAPI = {
+    // Get all products with pagination and filters
+    getAll: async (skip = 0, limit = 100, activeOnly = false, search = null, brandId = null, categoryId = null) => {
+        const params = { skip, limit };
+        if (activeOnly) params.active_only = true;
+        if (search) params.search = search;
+        if (brandId) params.brand_id = brandId;
+        if (categoryId) params.category_id = categoryId;
+        
+        const response = await api.get('/products-catalog', { params });
+        return response.data;
+    },
+
+    // Get products with brand and category details
+    getWithDetails: async (skip = 0, limit = 100, activeOnly = false) => {
+        const response = await api.get('/products-catalog/with-details', {
+            params: { skip, limit, active_only: activeOnly }
+        });
+        return response.data;
+    },
+
+    // Get single product by ID
+    getById: async (id) => {
+        const response = await api.get(`/products-catalog/${id}`);
+        return response.data;
+    },
+
+    // Create new product
+    create: async (data) => {
+        const response = await api.post('/products-catalog', data);
+        return response.data;
+    },
+
+    // Update product
+    update: async (id, data) => {
+        const response = await api.put(`/products-catalog/${id}`, data);
+        return response.data;
+    },
+
+    // Delete product
+    delete: async (id) => {
+        const response = await api.delete(`/products-catalog/${id}`);
+        return response.data;
+    },
+};
+
 export default api;

@@ -44,23 +44,27 @@ export default function Home() {
                         </div>
                     </div>
 
-                    <div className="border rounded-lg p-6 opacity-50">
-                        <h2 className="text-2xl font-semibold mb-2">Productos</h2>
-                        <p className="text-muted-foreground mb-4">
-                            Administra el catálogo de productos.
-                        </p>
-                        <div className="text-sm text-muted-foreground">
-                            Próximamente...
-                        </div>
-                    </div>
-
-                    <div className="border rounded-lg p-6 opacity-50">
+                    <div className="border rounded-lg p-6 hover:shadow-lg transition-shadow">
                         <h2 className="text-2xl font-semibold mb-2">Tiendas</h2>
                         <p className="text-muted-foreground mb-4">
                             Administra las tiendas y puntos de venta.
                         </p>
                         <div className="text-sm text-muted-foreground">
-                            Próximamente...
+                            ✓ Crear y editar tiendas<br />
+                            ✓ Gestionar URLs de comercios<br />
+                            ✓ Control de estado (activo/inactivo)
+                        </div>
+                    </div>
+
+                    <div className="border rounded-lg p-6 hover:shadow-lg transition-shadow">
+                        <h2 className="text-2xl font-semibold mb-2">Catálogo de Productos</h2>
+                        <p className="text-muted-foreground mb-4">
+                            Administra el catálogo de productos únicos.
+                        </p>
+                        <div className="text-sm text-muted-foreground">
+                            ✓ Crear y editar productos<br />
+                            ✓ Códigos SKU y atributos JSON<br />
+                            ✓ Asociar marcas y categorías
                         </div>
                     </div>
                 </div>

@@ -4,7 +4,9 @@ import Home from '@/pages/Home';
 import Categories from '@/pages/Categories';
 import Brands from '@/pages/Brands';
 import Manufacturers from '@/pages/Manufacturers';
-import { LayoutDashboard, Tags, Award, Factory } from 'lucide-react';
+import Stores from '@/pages/Stores';
+import ProductsCatalog from '@/pages/ProductsCatalog';
+import { LayoutDashboard, Tags, Award, Factory, Store, Package } from 'lucide-react';
 import './App.css';
 
 function Navigation() {
@@ -47,6 +49,18 @@ function Navigation() {
                 Marcas
               </Button>
             </Link>
+            <Link to="/products-catalog">
+              <Button variant={isActive('/products-catalog') ? 'default' : 'ghost'}>
+                <Package className="mr-2 h-4 w-4" />
+                Catálogo
+              </Button>
+            </Link>
+            <Link to="/stores">
+              <Button variant={isActive('/stores') ? 'default' : 'ghost'}>
+                <Store className="mr-2 h-4 w-4" />
+                Tiendas
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -64,6 +78,8 @@ function App() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/manufacturers" element={<Manufacturers />} />
           <Route path="/brands" element={<Brands />} />
+          <Route path="/products-catalog" element={<ProductsCatalog />} />
+          <Route path="/stores" element={<Stores />} />
         </Routes>
       </div>
     </Router>

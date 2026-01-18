@@ -225,4 +225,13 @@ export const productsCatalogAPI = {
     },
 };
 
+// Products API (Scraped products)
+export const productsAPI = {
+    // Get all scraped products with details
+    getAll: async () => {
+        const response = await api.get('/products');
+        return response.data;
+    },
+};
+
 export default api;

@@ -6,7 +6,8 @@ import Brands from '@/pages/Brands';
 import Manufacturers from '@/pages/Manufacturers';
 import Stores from '@/pages/Stores';
 import ProductsCatalog from '@/pages/ProductsCatalog';
-import { LayoutDashboard, Tags, Award, Factory, Store, Package } from 'lucide-react';
+import Products from '@/pages/Products';
+import { LayoutDashboard, Tags, Award, Factory, Store, Package, ShoppingCart } from 'lucide-react';
 import './App.css';
 
 function Navigation() {
@@ -55,6 +56,12 @@ function Navigation() {
                 Catálogo
               </Button>
             </Link>
+            <Link to="/products">
+              <Button variant={isActive('/products') ? 'default' : 'ghost'}>
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Scrapeados
+              </Button>
+            </Link>
             <Link to="/stores">
               <Button variant={isActive('/stores') ? 'default' : 'ghost'}>
                 <Store className="mr-2 h-4 w-4" />
@@ -79,6 +86,7 @@ function App() {
           <Route path="/manufacturers" element={<Manufacturers />} />
           <Route path="/brands" element={<Brands />} />
           <Route path="/products-catalog" element={<ProductsCatalog />} />
+          <Route path="/products" element={<Products />} />
           <Route path="/stores" element={<Stores />} />
         </Routes>
       </div>

@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react';
 import { brandsAPI, manufacturersAPI } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Pencil, Trash2, Search, RefreshCw } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, RefreshCw, Filter, X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -36,6 +44,15 @@ export default function Brands() {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [editingBrand, setEditingBrand] = useState(null);
     const [deletingBrand, setDeletingBrand] = useState(null);
+    
+    // Filtros
+    const [selectedManufacturer, setSelectedManufacturer] = useState('all');
+    const [selectedStatus, setSelectedStatus] = useState('all');
+    const [showFilters, setShowFilters] = useState(false);
+    
+    // Selección múltiple
+    const [selectedBrands, setSelectedBrands] = useState([]);
+    const [selectAll, setSelectAll] = useState(false);
 
     // Load brands with manufacturer info
     const loadBrands = async () => {
@@ -68,10 +85,19 @@ export default function Brands() {
     }, []);
 
     // Filter brands by search term
-    const filteredBrands = brands.filter(brand =>
-        brand.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        brand.manufacturer_name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredBrands = brands.filter(brand => {
+        const matchesSearch = brand.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            brand.manufacturer_name?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesManufacturer = selectedManufacturer === 'all' || 
+            String(brand.manufacturer_id) === String(selectedManufacturer);
+        
+        const matchesStatus = selectedStatus === 'all' || 
+            (selectedStatus === 'active' && brand.active) ||
+            (selectedStatus === 'inactive' && !brand.active);
+        
+        return matchesSearch && matchesManufacturer && matchesStatus;
+    });
 
     // Handle create brand
     const handleCreate = async (data) => {
@@ -106,6 +132,56 @@ export default function Brands() {
             setDeletingBrand(null);
         }
     };
+
+    // Manejar selección individual
+    const handleSelectBrand = (brandId) => {
+        setSelectedBrands(prev => 
+            prev.includes(brandId) 
+                ? prev.filter(id => id !== brandId)
+                : [...prev, brandId]
+        );
+    };
+
+    // Manejar seleccionar todos
+    const handleSelectAll = () => {
+        if (selectAll) {
+            setSelectedBrands([]);
+            setSelectAll(false);
+        } else {
+            setSelectedBrands(filteredBrands.map(brand => brand.id));
+            setSelectAll(true);
+        }
+    };
+
+    // Eliminar marcas seleccionadas
+    const handleDeleteSelected = async () => {
+        try {
+            await Promise.all(
+                selectedBrands.map(id => brandsAPI.delete(id))
+            );
+            setSelectedBrands([]);
+            setSelectAll(false);
+            loadBrands();
+        } catch (err) {
+            setError(err.response?.data?.detail || 'Error al eliminar las marcas');
+        }
+    };
+
+    // Limpiar filtros
+    const handleClearFilters = () => {
+        setSearchTerm('');
+        setSelectedManufacturer('all');
+        setSelectedStatus('all');
+    };
+
+    // Actualizar selectAll cuando cambian los filtros
+    useEffect(() => {
+        if (filteredBrands.length > 0 && selectedBrands.length === filteredBrands.length) {
+            setSelectAll(true);
+        } else {
+            setSelectAll(false);
+        }
+    }, [selectedBrands, filteredBrands]);
 
     return (
         <div className="container mx-auto py-8">
@@ -145,30 +221,124 @@ export default function Brands() {
                 </Alert>
             )}
 
-            <div className="flex items-center gap-4 mb-6">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Buscar marcas..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                    />
+            <div className="space-y-4 mb-6">
+                <div className="flex items-center gap-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Buscar marcas..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                    <Button
+                        variant="outline"
+                        onClick={() => setShowFilters(!showFilters)}
+                    >
+                        <Filter className="mr-2 h-4 w-4" />
+                        Filtros
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={loadBrands}
+                        disabled={loading}
+                    >
+                        <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    </Button>
                 </div>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={loadBrands}
-                    disabled={loading}
-                >
-                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                </Button>
+
+                {showFilters && (
+                    <div className="p-4 border rounded-lg bg-muted/50">
+                        <div className="flex items-end gap-4">
+                            <div className="flex-1">
+                                <label className="text-sm font-medium mb-2 block">
+                                    Fabricante
+                                </label>
+                                <Select
+                                    value={selectedManufacturer}
+                                    onValueChange={setSelectedManufacturer}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos los fabricantes" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todos los fabricantes</SelectItem>
+                                        {manufacturers.map((manufacturer) => (
+                                            <SelectItem key={manufacturer.id} value={manufacturer.id.toString()}>
+                                                {manufacturer.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex-1">
+                                <label className="text-sm font-medium mb-2 block">
+                                    Estado
+                                </label>
+                                <Select
+                                    value={selectedStatus}
+                                    onValueChange={setSelectedStatus}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos los estados" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todos los estados</SelectItem>
+                                        <SelectItem value="active">Activas</SelectItem>
+                                        <SelectItem value="inactive">Inactivas</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                onClick={handleClearFilters}
+                            >
+                                <X className="mr-2 h-4 w-4" />
+                                Limpiar
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {selectedBrands.length > 0 && (
+                    <div className="flex items-center gap-4 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+                        <span className="text-sm font-medium">
+                            {selectedBrands.length} marca{selectedBrands.length !== 1 ? 's' : ''} seleccionada{selectedBrands.length !== 1 ? 's' : ''}
+                        </span>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleDeleteSelected}
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar seleccionadas
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                setSelectedBrands([]);
+                                setSelectAll(false);
+                            }}
+                        >
+                            Cancelar
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead className="w-12">
+                                <Checkbox
+                                    checked={selectAll}
+                                    onCheckedChange={handleSelectAll}
+                                />
+                            </TableHead>
                             <TableHead>Nombre</TableHead>
                             <TableHead>Fabricante</TableHead>
                             <TableHead>País</TableHead>
@@ -180,19 +350,27 @@ export default function Brands() {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                     Cargando marcas...
                                 </TableCell>
                             </TableRow>
                         ) : filteredBrands.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                    {searchTerm ? 'No se encontraron marcas' : 'No hay marcas creadas'}
+                                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                    {searchTerm || selectedManufacturer !== 'all' || selectedStatus !== 'all' 
+                                        ? 'No se encontraron marcas con los filtros aplicados' 
+                                        : 'No hay marcas creadas'}
                                 </TableCell>
                             </TableRow>
                         ) : (
                             filteredBrands.map((brand) => (
                                 <TableRow key={brand.id}>
+                                    <TableCell>
+                                        <Checkbox
+                                            checked={selectedBrands.includes(brand.id)}
+                                            onCheckedChange={() => handleSelectBrand(brand.id)}
+                                        />
+                                    </TableCell>
                                     <TableCell className="font-medium">{brand.name}</TableCell>
                                     <TableCell>{brand.manufacturer_name || '-'}</TableCell>
                                     <TableCell>{brand.manufacturer_country || '-'}</TableCell>

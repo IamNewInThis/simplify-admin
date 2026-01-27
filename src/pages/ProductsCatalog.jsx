@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react';
 import { productsCatalogAPI, brandsAPI, categoriesAPI } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Pencil, Trash2, Search, RefreshCw, Package } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, RefreshCw, Package, Filter, X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -38,6 +46,16 @@ export default function ProductsCatalog() {
     const [editingProduct, setEditingProduct] = useState(null);
     const [deletingProduct, setDeletingProduct] = useState(null);
 
+    // Filtros
+    const [selectedBrand, setSelectedBrand] = useState('all');
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [selectedStatus, setSelectedStatus] = useState('all');
+    const [showFilters, setShowFilters] = useState(false);
+
+    // Selección múltiple
+    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [selectAll, setSelectAll] = useState(false);
+
     // Load products with details
     const loadProducts = async () => {
         setLoading(true);
@@ -72,13 +90,25 @@ export default function ProductsCatalog() {
         loadFormData();
     }, []);
 
-    // Filter products by search term
-    const filteredProducts = products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category_name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter products by search term and filters
+    const filteredProducts = products.filter(product => {
+        const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.brand_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.category_name?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesBrand = selectedBrand === 'all' ||
+            String(product.brand_id) === String(selectedBrand);
+
+        const matchesCategory = selectedCategory === 'all' ||
+            String(product.category_id) === String(selectedCategory);
+
+        const matchesStatus = selectedStatus === 'all' ||
+            (selectedStatus === 'active' && product.active) ||
+            (selectedStatus === 'inactive' && !product.active);
+
+        return matchesSearch && matchesBrand && matchesCategory && matchesStatus;
+    });
 
     // Handle create product
     const handleCreate = async (data) => {
@@ -113,6 +143,57 @@ export default function ProductsCatalog() {
             setDeletingProduct(null);
         }
     };
+
+    // Manejar selección individual
+    const handleSelectProduct = (productId) => {
+        setSelectedProducts(prev =>
+            prev.includes(productId)
+                ? prev.filter(id => id !== productId)
+                : [...prev, productId]
+        );
+    };
+
+    // Manejar seleccionar todos
+    const handleSelectAll = () => {
+        if (selectAll) {
+            setSelectedProducts([]);
+            setSelectAll(false);
+        } else {
+            setSelectedProducts(filteredProducts.map(product => product.id));
+            setSelectAll(true);
+        }
+    };
+
+    // Eliminar productos seleccionados
+    const handleDeleteSelected = async () => {
+        try {
+            await Promise.all(
+                selectedProducts.map(id => productsCatalogAPI.delete(id))
+            );
+            setSelectedProducts([]);
+            setSelectAll(false);
+            loadProducts();
+        } catch (err) {
+            setError(err.response?.data?.detail || 'Error al eliminar los productos');
+        }
+    };
+
+    // Limpiar filtros
+    const handleClearFilters = () => {
+        setSearchTerm('');
+        setSelectedBrand('all');
+        setSelectedCategory('all');
+        setSelectedStatus('all');
+    };
+
+    // Actualizar selectAll cuando cambian los filtros
+    useEffect(() => {
+        if (filteredProducts.length > 0 && selectedProducts.length === filteredProducts.length) {
+            setSelectAll(true);
+        } else {
+            setSelectAll(false);
+        }
+    }, [selectedProducts, filteredProducts]);
 
     return (
         <div className="container mx-auto py-8">
@@ -153,30 +234,145 @@ export default function ProductsCatalog() {
                 </Alert>
             )}
 
-            <div className="flex items-center gap-4 mb-6">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Buscar productos..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                    />
+            <div className="space-y-4 mb-6">
+                <div className="flex items-center gap-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Buscar productos..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                    <Button
+                        variant="outline"
+                        onClick={() => setShowFilters(!showFilters)}
+                    >
+                        <Filter className="mr-2 h-4 w-4" />
+                        Filtros
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={loadProducts}
+                        disabled={loading}
+                    >
+                        <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    </Button>
                 </div>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={loadProducts}
-                    disabled={loading}
-                >
-                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                </Button>
+
+                {showFilters && (
+                    <div className="p-4 border rounded-lg bg-muted/50">
+                        <div className="flex items-end gap-4">
+                            <div className="flex-1">
+                                <label className="text-sm font-medium mb-2 block">
+                                    Marca
+                                </label>
+                                <Select
+                                    value={selectedBrand}
+                                    onValueChange={setSelectedBrand}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todas las marcas" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todas las marcas</SelectItem>
+                                        {brands.map((brand) => (
+                                            <SelectItem key={brand.id} value={brand.id.toString()}>
+                                                {brand.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex-1">
+                                <label className="text-sm font-medium mb-2 block">
+                                    Categoría
+                                </label>
+                                <Select
+                                    value={selectedCategory}
+                                    onValueChange={setSelectedCategory}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todas las categorías" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todas las categorías</SelectItem>
+                                        {categories.map((category) => (
+                                            <SelectItem key={category.id} value={category.id.toString()}>
+                                                {category.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex-1">
+                                <label className="text-sm font-medium mb-2 block">
+                                    Estado
+                                </label>
+                                <Select
+                                    value={selectedStatus}
+                                    onValueChange={setSelectedStatus}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos los estados" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todos los estados</SelectItem>
+                                        <SelectItem value="active">Activos</SelectItem>
+                                        <SelectItem value="inactive">Inactivos</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                onClick={handleClearFilters}
+                            >
+                                <X className="mr-2 h-4 w-4" />
+                                Limpiar
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {selectedProducts.length > 0 && (
+                    <div className="flex items-center gap-4 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+                        <span className="text-sm font-medium">
+                            {selectedProducts.length} producto{selectedProducts.length !== 1 ? 's' : ''} seleccionado{selectedProducts.length !== 1 ? 's' : ''}
+                        </span>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleDeleteSelected}
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar seleccionados
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                setSelectedProducts([]);
+                                setSelectAll(false);
+                            }}
+                        >
+                            Cancelar
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead className="w-12">
+                                <Checkbox
+                                    checked={selectAll}
+                                    onCheckedChange={handleSelectAll}
+                                />
+                            </TableHead>
                             <TableHead>Nombre</TableHead>
                             <TableHead>SKU</TableHead>
                             <TableHead>Marca</TableHead>
@@ -189,19 +385,27 @@ export default function ProductsCatalog() {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                                     Cargando productos...
                                 </TableCell>
                             </TableRow>
                         ) : filteredProducts.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                    {searchTerm ? 'No se encontraron productos' : 'No hay productos creados'}
+                                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                                    {searchTerm || selectedBrand !== 'all' || selectedCategory !== 'all' || selectedStatus !== 'all'
+                                        ? 'No se encontraron productos con los filtros aplicados'
+                                        : 'No hay productos creados'}
                                 </TableCell>
                             </TableRow>
                         ) : (
                             filteredProducts.map((product) => (
                                 <TableRow key={product.id}>
+                                    <TableCell>
+                                        <Checkbox
+                                            checked={selectedProducts.includes(product.id)}
+                                            onCheckedChange={() => handleSelectProduct(product.id)}
+                                        />
+                                    </TableCell>
                                     <TableCell className="font-medium max-w-xs truncate">
                                         {product.name}
                                     </TableCell>

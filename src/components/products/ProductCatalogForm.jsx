@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useState } from "react";
 
 export default function ProductCatalogForm({
@@ -138,29 +139,14 @@ export default function ProductCatalogForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="brand">Marca</Label>
-          <Select
+          <Label>Marca</Label>
+          <SearchableSelect
             value={watch("brand_id")}
-            onValueChange={(value) => setValue("brand_id", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecciona una marca" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Sin marca</SelectItem>
-              {Array.isArray(brands) && brands.length > 0 ? (
-                brands.map((brand) => (
-                  <SelectItem key={brand.id} value={brand.id}>
-                    {brand.name}
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value="no-data" disabled>
-                  No hay marcas disponibles
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
+            onChange={(value) => setValue("brand_id", value)}
+            options={brands}
+            placeholder="Selecciona una marca"
+            emptyLabel="Sin marca"
+          />
         </div>
 
         <div className="space-y-2">

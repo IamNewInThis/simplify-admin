@@ -50,6 +50,8 @@ export default function ProductsCatalog() {
     const [selectedBrand, setSelectedBrand] = useState('all');
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [selectedStatus, setSelectedStatus] = useState('all');
+    const [missingBrand, setMissingBrand] = useState(false);
+    const [missingCategory, setMissingCategory] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
 
     // Selección múltiple
@@ -107,7 +109,11 @@ export default function ProductsCatalog() {
             (selectedStatus === 'active' && product.active) ||
             (selectedStatus === 'inactive' && !product.active);
 
-        return matchesSearch && matchesBrand && matchesCategory && matchesStatus;
+        const matchesMissingBrand = !missingBrand || !product.brand_id;
+        const matchesMissingCategory = !missingCategory || !product.category_id;
+
+        return matchesSearch && matchesBrand && matchesCategory && matchesStatus
+            && matchesMissingBrand && matchesMissingCategory;
     });
 
     // Handle create product
@@ -184,6 +190,8 @@ export default function ProductsCatalog() {
         setSelectedBrand('all');
         setSelectedCategory('all');
         setSelectedStatus('all');
+        setMissingBrand(false);
+        setMissingCategory(false);
     };
 
     // Actualizar selectAll cuando cambian los filtros
@@ -332,6 +340,22 @@ export default function ProductsCatalog() {
                                 <X className="mr-2 h-4 w-4" />
                                 Limpiar
                             </Button>
+                        </div>
+                        <div className="flex items-center gap-6 mt-3 pt-3 border-t">
+                            <label className="flex items-center gap-2 text-sm cursor-pointer">
+                                <Checkbox
+                                    checked={missingBrand}
+                                    onCheckedChange={setMissingBrand}
+                                />
+                                Sin marca asignada
+                            </label>
+                            <label className="flex items-center gap-2 text-sm cursor-pointer">
+                                <Checkbox
+                                    checked={missingCategory}
+                                    onCheckedChange={setMissingCategory}
+                                />
+                                Sin categoría asignada
+                            </label>
                         </div>
                     </div>
                 )}

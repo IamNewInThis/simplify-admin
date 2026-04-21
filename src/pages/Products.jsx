@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { productsAPI } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, RefreshCw, ExternalLink, Calendar, DollarSign, Store } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Search, RefreshCw, ExternalLink, Calendar, DollarSign, Store, Filter, X } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -22,6 +23,8 @@ export default function Products() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [missingCategory, setMissingCategory] = useState(false);
+    const [showFilters, setShowFilters] = useState(false);
 
     // Load scraped products
     const loadProducts = async () => {
@@ -43,11 +46,14 @@ export default function Products() {
     }, []);
 
     // Filter products
-    const filteredProducts = products.filter(product =>
-        product.catalog_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.store_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category_name?.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+    const filteredProducts = products.filter(product => {
+        const matchesSearch =
+            product.catalog_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.store_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.category_name?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesMissingCategory = !missingCategory || !product.category_id;
+        return matchesSearch && matchesMissingCategory;
+    });
 
     // Format date
     const formatDate = (dateString) => {
@@ -137,17 +143,44 @@ export default function Products() {
                 </Alert>
             )}
 
-            {/* Search */}
-            <div className="flex items-center space-x-2">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        placeholder="Buscar por nombre, tienda o categoría..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                    />
+            {/* Search & Filters */}
+            <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Buscar por nombre, tienda o categoría..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                    <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
+                        <Filter className="mr-2 h-4 w-4" />
+                        Filtros
+                        {missingCategory && (
+                            <span className="ml-2 rounded-full bg-primary text-primary-foreground text-xs w-4 h-4 flex items-center justify-center">1</span>
+                        )}
+                    </Button>
                 </div>
+                {showFilters && (
+                    <div className="p-4 border rounded-lg bg-muted/50">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium">Filtros</span>
+                            <Button variant="ghost" size="sm" onClick={() => setMissingCategory(false)}>
+                                <X className="mr-1 h-3 w-3" />
+                                Limpiar
+                            </Button>
+                        </div>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <Checkbox
+                                checked={missingCategory}
+                                onCheckedChange={setMissingCategory}
+                            />
+                            Sin categoría asignada
+                        </label>
+                    </div>
+                )}
             </div>
 
             {/* Products List - Grouped */}

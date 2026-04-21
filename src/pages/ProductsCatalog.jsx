@@ -76,7 +76,7 @@ export default function ProductsCatalog() {
         try {
             const [brandsData, categoriesData] = await Promise.all([
                 brandsAPI.getAll(),
-                categoriesAPI.getAll()
+                categoriesAPI.getAll(),
             ]);
             setBrands(brandsData);
             setCategories(categoriesData);
@@ -149,7 +149,7 @@ export default function ProductsCatalog() {
         setSelectedProducts(prev =>
             prev.includes(productId)
                 ? prev.filter(id => id !== productId)
-                : [...prev, productId]
+                : [...prev, productId],
         );
     };
 
@@ -168,7 +168,7 @@ export default function ProductsCatalog() {
     const handleDeleteSelected = async () => {
         try {
             await Promise.all(
-                selectedProducts.map(id => productsCatalogAPI.delete(id))
+                selectedProducts.map(id => productsCatalogAPI.delete(id)),
             );
             setSelectedProducts([]);
             setSelectAll(false);

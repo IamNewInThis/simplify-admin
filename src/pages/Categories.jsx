@@ -58,7 +58,7 @@ export default function Categories() {
     // Filter categories by search term
     const filteredCategories = categories.filter(category =>
         category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        category.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        category.description?.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     // Handle create category

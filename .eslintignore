@@ -1,0 +1,24 @@
+# Dependencias
+
+node_modules/
+
+# Build
+
+dist/
+build/
+
+# Cache
+
+.vite/
+\*.log
+
+# Configuración
+
+vite.config.js
+postcss.config.js
+tailwind.config.js
+
+# Otros
+
+.DS_Store
+coverage/

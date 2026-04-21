@@ -46,7 +46,7 @@ export default function Products() {
     const filteredProducts = products.filter(product =>
         product.catalog_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.store_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category_name?.toLowerCase().includes(searchTerm.toLowerCase())
+        product.category_name?.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     // Format date
@@ -58,7 +58,7 @@ export default function Products() {
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
         });
     };
 
@@ -78,7 +78,7 @@ export default function Products() {
                 catalog_sku: product.catalog_sku,
                 category_name: product.category_name,
                 brand_name: product.brand_name,
-                stores: []
+                stores: [],
             };
         }
         acc[key].stores.push(product);

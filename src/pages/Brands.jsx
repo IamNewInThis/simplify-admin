@@ -138,7 +138,7 @@ export default function Brands() {
         setSelectedBrands(prev => 
             prev.includes(brandId) 
                 ? prev.filter(id => id !== brandId)
-                : [...prev, brandId]
+                : [...prev, brandId],
         );
     };
 
@@ -157,7 +157,7 @@ export default function Brands() {
     const handleDeleteSelected = async () => {
         try {
             await Promise.all(
-                selectedBrands.map(id => brandsAPI.delete(id))
+                selectedBrands.map(id => brandsAPI.delete(id)),
             );
             setSelectedBrands([]);
             setSelectAll(false);

@@ -14,7 +14,7 @@ export const categoriesAPI = {
     // Get all categories with pagination
     getAll: async (skip = 0, limit = 100) => {
         const response = await api.get('/categories', {
-            params: { skip, limit }
+            params: { skip, limit },
         });
         return response.data;
     },
@@ -66,7 +66,7 @@ export const brandsAPI = {
     // Get brands with manufacturer information
     getWithManufacturer: async (skip = 0, limit = 100, activeOnly = false) => {
         const response = await api.get('/brands/with-manufacturer', {
-            params: { skip, limit, active_only: activeOnly }
+            params: { skip, limit, active_only: activeOnly },
         });
         return response.data;
     },
@@ -111,7 +111,7 @@ export const manufacturersAPI = {
     // Get manufacturers with brand count
     getWithBrands: async (skip = 0, limit = 100) => {
         const response = await api.get('/manufacturers/with-brands', {
-            params: { skip, limit }
+            params: { skip, limit },
         });
         return response.data;
     },
@@ -195,7 +195,7 @@ export const productsCatalogAPI = {
     // Get products with brand and category details
     getWithDetails: async (skip = 0, limit = 100, activeOnly = false) => {
         const response = await api.get('/products-catalog/with-details', {
-            params: { skip, limit, active_only: activeOnly }
+            params: { skip, limit, active_only: activeOnly },
         });
         return response.data;
     },

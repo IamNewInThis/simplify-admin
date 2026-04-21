@@ -58,7 +58,7 @@ export default function Stores() {
     // Filter stores by search term
     const filteredStores = stores.filter(store =>
         store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        store.base_url?.toLowerCase().includes(searchTerm.toLowerCase())
+        store.base_url?.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     // Handle create store

@@ -59,7 +59,7 @@ export default function Manufacturers() {
   const filteredManufacturers = manufacturers.filter(manufacturer =>
     manufacturer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     manufacturer.country?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    manufacturer.main_business_line?.toLowerCase().includes(searchTerm.toLowerCase())
+    manufacturer.main_business_line?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Handle create manufacturer
